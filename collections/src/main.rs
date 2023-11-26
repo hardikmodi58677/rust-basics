@@ -458,79 +458,75 @@
 
 //Using a hash map and vectors, create a text interface to allow a user to add employee names to a department in a company. For example, “Add Sally to Engineering” or “Add Amir to Sales.” Then let the user retrieve a list of all people in a department or all people in the company by department, sorted alphabetically.
 
+// Define the Department enum to represent different departments in a company
+#[derive(Hash, Eq, PartialEq, Debug, Clone)]
+enum Department {
+    Engineering,
+    Sales,
+}
+
+// Define the Company struct to store employees in different departments
+use std::collections::HashMap;
+
+struct Company {
+    employees: HashMap<Department, Vec<String>>,
+}
+
+impl Company {
+    // Add an employee to a specific department
+    fn add_employee(&mut self, department: &Department, name: &str) -> () {
+        // Clone the employees map to make modifications
+        let mut employees_map = self.employees.clone();
+        // Get the employees vector for the specified department, or create a new one if it doesn't exist
+        let employees = employees_map.entry(department.clone()).or_insert(vec![]);
+        // Add the employee's name to the employees vector
+        employees.push(name.to_string());
+        println!("Employee {} added to {:?}", name, department);
+        // Update the employees map with the modified version
+        self.employees = employees_map;
+    }
+
+    // Retrieve all employees in a specific department
+    fn retrieve_employees_by_department(&self, department: &Department) -> Vec<String> {
+        // Get the employees vector for the specified department
+        let employees = self.employees.get(&department);
+        // Clone the employees vector or create an empty vector if it doesn't exist
+        let employees_list = match employees {
+            Some(employees) => employees.clone(),
+            None => vec![],
+        };
+        println!(
+            "Retrieve employees by department: {:?} {:?}",
+            &department, employees_list
+        );
+        employees_list
+    }
+
+    // Retrieve all employees in the company, sorted by department
+    fn retrieve_employees(&mut self) -> HashMap<Department, Vec<String>> {
+        // Clone the employees map to make modifications
+        let mut employees_map = self.employees.clone();
+        // Sort the employees vectors for each department
+        employees_map.iter_mut().for_each(|(_, v)| v.sort());
+        println!("Retrieve all employees: {:?}", employees_map);
+        employees_map
+    }
+}
+
 fn main() {
-    use std::collections::HashMap;
-
-    #[derive(Eq, Hash, PartialEq, Debug, Clone)]
-    #[allow(dead_code)]
-    enum Department {
-        Engineering,
-        Sales,
-        Marketing,
-        Finance,
-    }
-
-    struct Company {
-        employees: HashMap<Department, Vec<String>>,
-    }
-
-    impl Company {
-        fn add_employee(&mut self, name: &str, department: Department) -> () {
-            match department {
-                Department::Engineering => {
-                    self.employees
-                        .entry(Department::Engineering)
-                        .or_insert(vec![name.to_string()]);
-                }
-                Department::Sales => {
-                    self.employees
-                        .entry(Department::Sales)
-                        .or_insert(vec![name.to_string()]);
-                }
-                Department::Marketing => {
-                    self.employees
-                        .entry(Department::Marketing)
-                        .or_insert(vec![name.to_string()]);
-                }
-                Department::Finance => {
-                    self.employees
-                        .entry(Department::Finance)
-                        .or_insert(vec![name.to_string()]);
-                }
-            }
-            // Sort the vector
-            self.employees
-                .get_mut(&department)
-                .unwrap()
-                .sort_by(|a, b| a.to_lowercase().cmp(&b.to_lowercase()));
-        }
-        fn retrieve_employees(
-            &self,
-            department: Option<Department>,
-        ) -> HashMap<Department, Vec<String>> {
-            // if department is passed, return a hashmap of department:employees
-            if department.is_some() {
-                let mut employees_map: HashMap<Department, Vec<String>> = HashMap::new();
-                let new_department = department.unwrap();
-                let employees = self.employees.get(&new_department).unwrap();
-                employees_map.insert(new_department, employees.clone());
-                employees_map
-            } else {
-                self.employees.clone()
-            }
-        }
-    }
-
-    let company_employees: HashMap<Department, Vec<String>> = HashMap::new();
-
+    // Create a new instance of the Company struct
     let mut company = Company {
-        employees: company_employees,
+        employees: HashMap::new(),
     };
-    company.add_employee("Samantha", Department::Engineering);
-    company.add_employee("Amir", Department::Sales);
-    let all_employees = company.retrieve_employees(None);
-    let eng_employees = company.retrieve_employees(Some(Department::Engineering));
 
-    println!("{:?}", all_employees);
-    println!("{:?}", eng_employees);
+    // Add employees to different departments
+    company.add_employee(&Department::Engineering, "Sally");
+    company.add_employee(&Department::Sales, "Ameet");
+    company.add_employee(&Department::Sales, "Zingula");
+
+    // Retrieve employees in a specific department
+    company.retrieve_employees_by_department(&Department::Sales);
+
+    // Retrieve all employees in the company
+    company.retrieve_employees();
 }
